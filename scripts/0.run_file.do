@@ -60,23 +60,6 @@ global log_path "scripts/logs"
 global restricted_data_raw "restricted_raw_data" 
 global restricted_data_analysis "restricted_data_for_analysis"
 
-// Initialize log and record system parameters
-cap log close
-local datetime : di %tcCCYY.NN.DD!-HH.MM.SS `=clock("$S_DATE $S_TIME", "DMYhms")'
-local logfile "$log_path/`datetime'.log.txt"
-log using "`logfile'", text
-
-di "Begin date and time: $S_DATE $S_TIME"
-di "Stata version: `c(stata_version)'"
-di "Updated as of: `c(born_date)'"
-di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
-di "Processors:    `c(processors)'"
-di "OS:            `c(os)' `c(osdtl)'"
-di "Machine type:  `c(machine_type)'"
-
-// Set Date
-global date = subinstr("$S_DATE", " ", "-", .)
-
 // Version of stata
 version 16
 
@@ -103,12 +86,6 @@ matrix drop _all
 if $run_did == 1 {
 	do $script_path/1.staggered_did_analysis.do
 }
-
-
-* End log
-di "End date and time: $S_DATE $S_TIME"
-log close
-
 
 
 
