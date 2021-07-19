@@ -12,4 +12,4 @@ Download the entire zipped folder and open the Stata project `staggered.stpr`. T
 
 - `scripts/1.staggered_did_analysis.do` contains the DID estimations and produces two event-study plots for different time-horizons which will be saved in the folder `output`.
 
-
+As several of these user-written packages have been developed recently, it is worth checking for updates by changing `global downloads 0` into `global downloads 1` in `scripts/0.run_file.do`. This will automatically update all packages.
