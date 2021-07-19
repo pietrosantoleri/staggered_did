@@ -8,8 +8,8 @@ This code is a slightly modified version of a [script](https://github.com/borusy
 
 Download the entire zipped folder and open the Stata project `staggered.stpr`. Two scripts will appear in the project manager:
 
-- `scripts/0.run_file.do` sets up the environment and calls `scripts/1.staggered_did_analysis.do` to compute the estimates. There is no need to adjust paths, nor downloading the user-written packages as they are already contained in `stata_packages`. It suffices to run `scripts/0.run_file.do` to obtain the estimates.
+- `scripts/0.run_file.do`: sets up the environment and calls `scripts/1.staggered_did_analysis.do` to compute the estimates. There is no need to adjust paths, nor downloading the user-written packages as they are already contained in `stata_packages`. It suffices to run `scripts/0.run_file.do` to obtain the estimates.
 
-- `scripts/1.staggered_did_analysis.do` contains the DID estimations and produces two event-study plots for different time-horizons which will be saved in the folder `output`.
+- `scripts/1.staggered_did_analysis.do`: contains the DID estimations and produces two event-study plots for different time-horizons which will be saved in the folder `output`.
 
 As several of these user-written packages have been developed recently, it is worth checking for updates by changing `global downloads 0` into `global downloads 1` in `scripts/0.run_file.do`. This will automatically update all packages.
