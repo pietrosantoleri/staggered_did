@@ -1,0 +1,273 @@
+* developed by E. F. Haghish - 2018
+
+VERSION 12
+POSITION . . 400 475
+
+// Specify package license
+//      https://help.github.com/articles/licensing-a-repository/
+LIST license_list
+BEGIN
+	select
+	Academic Free License v3.0
+	Apache license 2.0
+	Artistic license 2.0
+	Boost Software License 1.0
+	BSD 2-clause "Simplified" license
+	BSD 3-clause "New" or "Revised" license
+	BSD 3-clause Clear license
+	Creative Commons license family
+	Creative Commons Zero v1.0 Universal
+	Creative Commons Attribution 4.0
+	Creative Commons Attribution Share Alike 4.0
+	Do What The F*ck You Want To Public License
+	Educational Community License v2.0
+	Eclipse Public License 1.0
+	European Union Public License 1.1
+	GNU Affero General Public License v3.0
+	GNU General Public License family
+	GNU General Public License v2.0
+	GNU General Public License v3.0
+	GNU Lesser General Public License family
+	GNU Lesser General Public License v2.1
+	GNU Lesser General Public License v3.0
+	ISC
+	LaTeX Project Public License v1.3c
+	Microsoft Public License
+	MIT
+	Mozilla Public License 2.0
+	Open Software License 3.0
+	PostgreSQL License
+	SIL Open Font License 1.1
+	University of Illinois/NCSA Open Source License
+	The Unlicense
+	zLib License
+END
+
+
+DIALOG make, label("make") 
+BEGIN
+
+	// toc
+	CHECKBOX toc  10  10   @   .  , option(toc) default(1) ///
+	         label("create stata.toc") 
+	// pkg
+	CHECKBOX pkg  10    +20   @   .  , option(pkg) default(1) ///
+	         label("create packagename.pkg") 
+	
+	// make
+	CHECKBOX make  10    +20   @   .  , option(make) default(1) ///
+	         label("create make.do") 
+			 
+	// readme
+	CHECKBOX readme  10    +20   @   .  , option(readme) default(0) ///
+	         label("create README.md") 
+	
+	
+	// replace
+	CHECKBOX replace  10    +20   @   .  , option(replace) default(0) ///
+	         label("replace files, if existing") 
+					 
+	
+	// select installable files
+	TEXT tx_pkginfo  10   +40  . ., label("Package information")
+	
+	// title of the document
+	TEXT tx_name 10 +20 . ., label("pkg name*")
+	EDIT name    80 @ 310 19 , default("")
+	
+	// title of the document
+	TEXT tx_title 10 +20 . ., label("short title*")
+	EDIT title    80 @ 310 19, default("")
+	
+	// verrsion
+	TEXT tx_version  10   +20  . 310, label("version*")
+	EDIT version     80   @    310  19  , default("")
+	
+	// Description
+	TEXT tx_description  10   +20  . 310, label("description")
+	EDIT description     80   @    310  19  , default("")
+	
+	// License
+	TEXT tx_license  10   +20  . 310, label("license*")
+	COMBOBOX license  80    @  70  .  , dropdownlist contents(license_list)
+	
+	
+	// select installable files
+	TEXT tx_autinfo  10   +40  . ., label("Author information")
+	
+	// Author of the document
+	TEXT tx_author 10 +20 . +59, label("author*")
+	EDIT author 80 @ 310 19  
+	
+	// E-mail
+	TEXT tx_email 10 +20 . ., label("e-mail*")
+	EDIT email 80 @ 310 19  
+	 
+	// Affiliation
+	TEXT tx_affiliation 10 +20 . ., label("affiliation")
+	EDIT affiliation 80 @ 310 19   
+	 
+	// URL
+	TEXT tx_url 10 +20 . ., label("url link")
+	EDIT url 80 @ 310 19  
+	
+	
+	 
+	
+	// select the path to the directory
+	/*
+	TEXT tx_repoinfo  10   +40  . ., label("Specify the path to the package repository")
+	TEXT tx0 10 +20 . ., label("repository*")
+	FILE path	 80 @  310  .  , error("path should be specified")  ///
+	      label(Browse...) ///
+	      tooltip("select the path to the package directory. for example, this can be the GitHub repository you are intending to upload") direct ///
+	      onchange("script mainReset")
+	*/
+		  
+		  
+	// select installable files
+	TEXT tx_summary3  10   +40  . 310, label("select installation and/or ancillary files*  (hold CTRL/CMD key)")
+	
+	TEXT tx_summary4  10   +20  . 310, label("installation")
+	FILE ffile	 80 @  310  .  , error("Open file")  ///
+	      label("select") ///
+	      tooltip("select the installation files. hold CTRL key for selecting multiple files") multiselect ///
+	      onchange("script mainReset") 
+		  
+	// select installable files
+	TEXT tx_summary5  10   +20  . 310, label("ancillary")
+	FILE axfile	 80 @  310  .  , error("Open file")  ///
+	      label("select") ///
+	      tooltip("select the ancillary files. hold CTRL key for selecting multiple files") multiselect ///
+	      onchange("script mainReset") 
+	
+	// required
+	TEXT tx_required  10   +40  . 310, label("* stared items are required")
+	
+END
+
+OK ok1,      label("OK")
+CANCEL can1, label("Cancel")
+SUBMIT sub1, label("Submit")
+HELP hlp1,   view("help usersite")
+RESET res1
+COPY copy1
+
+
+
+
+
+// ---------------------------------------------------------
+// MAKE COMMAND
+// =========================================================
+PROGRAM command
+BEGIN
+	
+	// repository, name, title, version, author should be specified
+	if (!make.name | make.name.iseq("")) {
+		stopbox stop "repository name is required"
+	}
+	if (!make.title | make.title.iseq("")) {
+		stopbox stop "repository title is required"
+	}
+	if (!make.version | make.version.iseq("")) {
+		stopbox stop "verion is required"
+	}
+	if (!make.author) {
+		stopbox stop "author name is required"
+	}
+	if (!make.email | make.email.iseq("")) {
+		stopbox stop "email is required"
+	}
+	if (!make.license | make.license.iseq("select")) {
+		stopbox stop "license is required"
+	}
+	
+
+	
+
+	
+	// one of the installing or ancillary files should be specified
+	if (!make.ffile & !make.axfile) {
+		stopbox stop "select installation and/or ancillary files"
+	}
+	
+	put "makedlg "
+	put make.name 
+	put ", "
+	
+
+	option make.replace						// replace
+	option make.toc						    // create toc 
+	option make.pkg						    // create pkg
+	option make.make						// create make.do
+	option make.readme						// create readme
+	
+	
+	if (make.title) {
+			put "title(`"`"""'
+			put make.title
+			put `"""'"') "
+	}
+		
+	if (make.version) {
+		put "version(" `"""'
+		put make.version
+		put `"""'") "
+	}
+	
+	if (make.description) {
+		put "description(`"`"""'
+		put make.description
+		put `"""'"') "
+	}
+	
+	if (make.license) {
+		put "license(" `"""'
+		put make.license
+		put `"""'") "
+	}
+	
+	if (make.author) {
+		put "author(" `"""'
+		put make.author
+		put `"""'") "
+	}
+	
+	if (make.affiliation) {
+		put "affiliation(" `"""'
+		put make.affiliation
+		put `"""'") "
+	}
+	
+	
+	if (make.url) {
+		put "url(" `"""'
+		put make.url
+		put `"""'") "
+	}
+	
+	if (make.email) {
+		put "email(" `"""'
+		put make.email
+		put `"""'") "
+	}
+	
+	
+	if (make.ffile) {
+		put "install(`"`"""'
+		require make.ffile
+		put make.ffile
+		put `"""'"') "
+	}
+	
+	if (make.axfile) {
+		put "ancillary(`"`"""'
+		require make.axfile
+		put make.axfile
+		put `"""'"') "
+	}
+		
+		
+END
+

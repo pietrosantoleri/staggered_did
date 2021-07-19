@@ -1,0 +1,489 @@
+* 00000013
+*! version 1.0.0
+* Do not erase or edit this file
+* It is used by Stata to track the ado and help
+* files you have installed.
+
+S http://fmwww.bc.edu/repec/bocode/e
+N estout.pkg
+D 18 Jul 2021
+U 1
+d 'ESTOUT': module to make regression tables
+d 
+d  estout produces a table of regression results from one or
+d several models for use with spreadsheets, LaTeX, HTML, or a
+d word-processor table. eststo stores a quick copy of the active
+d estimation results for later tabulation. esttab is a wrapper for
+d estout. It displays a pretty looking publication-style regression
+d table without much typing. estadd adds additional results to the
+d e()-returns for one or several models previously fitted and
+d stored. This package subsumes the previously circulated esto,
+d esta, estadd,  and estadd_plus. An earlier version of estout is
+d available  as estout1.
+d 
+d KW: estimates
+d KW: LaTeX
+d KW: HTML
+d KW: word processor
+d KW: output
+d 
+d Requires: Stata version 8.2
+d 
+d Distribution-Date: 20210523
+d 
+d Author: Ben Jann, University of Bern
+d Support: email jann@@soz.unibe.ch
+d 
+f _/_eststo.ado
+f _/_eststo.hlp
+f e/estadd.ado
+f e/estadd.hlp
+f e/estout.ado
+f e/estout.hlp
+f e/eststo.ado
+f e/eststo.hlp
+f e/estpost.ado
+f e/estpost.hlp
+f e/esttab.ado
+f e/esttab.hlp
+e
+S http://fmwww.bc.edu/repec/bocode/f
+N ftools.pkg
+D 18 Jul 2021
+U 2
+d 'FTOOLS': module to provide alternatives to common Stata commands optimized for large datasets
+d 
+d  ftools consists of a Mata file and several Stata commands: The
+d Mata file creates identifiers (factors) from variables by using
+d hash functions instead of sorting the data, so it runs in time
+d O(N) and not in O(N log N). The Stata commands exploit this to
+d avoid sort operations,  at the cost of being slower for small
+d datasets (mainly because of the cost involved in moving data from
+d Stata to Mata). Implemented commands are fcollapse, fegen group,
+d and fsort. Note that most of the capabilities of levels and
+d contract are already supported by these commands. Possible
+d commands include more egen functions and merge and reshape
+d alternatives.
+d 
+d KW: levels
+d KW: collapse
+d KW: contract
+d KW: egen
+d KW: sort
+d KW: factor variables
+d KW: Mata
+d 
+d Requires: Stata version 11.2
+d 
+d Distribution-Date: 20191118
+d 
+d Author: Sergio Correia, Board of Governors of the Federal Reserve System
+d Support: email sergio.correia@@gmail.com
+d 
+f f/ftools.ado
+f f/ftools.mata
+f f/ftools.sthlp
+f f/fcollapse.ado
+f f/fcollapse.sthlp
+f f/fegen.ado
+f f/fegen_group.ado
+f f/fegen.sthlp
+f f/fisid.ado
+f f/fisid.sthlp
+f f/flevelsof.ado
+f f/flevelsof.sthlp
+f f/fmerge.ado
+f f/fmerge.sthlp
+f f/freshape.ado
+f f/fsort.ado
+f f/fsort.sthlp
+f f/ftab.ado
+f j/join.ado
+f j/join.sthlp
+f l/local_inlist.ado
+f l/local_inlist.sthlp
+f f/fcollapse_functions.mata
+f f/fcollapse_main.mata
+f f/ftools_type_aliases.mata
+f f/ftools.mata
+f f/ftools_common.mata
+f f/ftools_hash1.mata
+f f/ftools_main.mata
+f f/ftools_experimental.mata
+f f/ftools_plugin.mata
+f f/ftools_type_aliases.mata
+f m/ms_compile_mata.ado
+f m/ms_expand_varlist.ado
+f m/ms_fvstrip.ado
+f m/ms_fvstrip.sthlp
+f m/ms_fvunab.ado
+f m/ms_get_version.ado
+f m/ms_parse_absvars.ado
+f m/ms_parse_varlist.ado
+f m/ms_parse_vce.ado
+f m/ms_add_comma.ado
+e
+S http://fmwww.bc.edu/repec/bocode/r
+N reghdfe.pkg
+D 18 Jul 2021
+U 3
+d 'REGHDFE': module to perform linear or instrumental-variable regression absorbing any number of high-dimensional fixed effects
+d 
+d  reghdfe fits a linear or instrumental-variable regression
+d absorbing an arbitrary number of categorical factors and
+d factorial interactions Optionally, it saves the estimated fixed
+d effects.
+d 
+d KW: regression
+d KW: instrumental variables
+d KW: fixed effects
+d KW: high dimension fixed effects
+d 
+d Requires: Stata version 11.2
+d 
+d Distribution-Date: 20191118
+d 
+d Author: Sergio Correia, Board of Governors of the Federal Reserve System
+d Support: email sergio.correia@@gmail.com
+d 
+f r/reghdfe.ado
+f r/reghdfe.mata
+f r/reghdfe_old.ado
+f r/reghdfe_p.ado
+f r/reghdfe_old_p.ado
+f r/reghdfe_estat.ado
+f r/reghdfe_parse.ado
+f r/reghdfe_footnote.ado
+f r/reghdfe_old_estat.ado
+f r/reghdfe_old_footnote.ado
+f e/estfe.ado
+f r/reghdfe_header.ado
+f r/reghdfe_store_alphas.ado
+f r/reghdfe.sthlp
+f r/reghdfe_old.sthlp
+f r/reghdfe_accelerations.mata
+f r/reghdfe_bipartite.mata
+f r/reghdfe_class.mata
+f r/reghdfe_common.mata
+f r/reghdfe_constructor.mata
+f r/reghdfe_lsmr.mata
+f r/reghdfe_projections.mata
+f r/reghdfe_transforms.mata
+f r/reghdfe_mata.sthlp
+e
+S https://raw.githubusercontent.com/kylebutts/did2s_stata/main/ado
+N did2s.pkg
+D 18 Jul 2021
+U 4
+d 'did2s': Run two-stage differnece-in-differences following Gardner (2021)
+d 
+d Distribution-Date:   20210526
+d License: MIT
+d 
+f d/did2s.ado
+f d/did2s.sthlp
+f d/df_het.dta
+f d/df_hom.dta
+e
+S http://fmwww.bc.edu/repec/bocode/d
+N did_imputation.pkg
+D 18 Jul 2021
+U 5
+d 'DID_IMPUTATION': module to perform treatment effect estimation and pre-trend testing in event studies
+d 
+d     did_imputation estimates the effects of a binary treatment
+d with staggered rollout    allowing for arbitrary heterogeneity
+d and dynamics of causal effects, using the    imputation estimator
+d of Borusyak, Jaravel, and Spiess  (2021). The benchmark case
+d is with panel data, in which each unit i that gets treated as of
+d   period Ei stays treated forever; some units may never be
+d treated. Other types of data   (e.g. repeated cross-sections)
+d and other designs (e.g. triple-diffs) are also allowed.
+d 
+d KW: treatment
+d KW: did
+d KW: panel data
+d 
+d Requires: Stata version 13
+d 
+d Distribution-Date: 20210608
+d 
+d Author: Kirill Borusyak ,  University College London
+d Support: email k.borusyak@@ucl.ac.uk
+d 
+f d/did_imputation.ado
+f d/did_imputation.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/e
+N event_plot.pkg
+D 18 Jul 2021
+U 6
+d 'EVENT_PLOT': module to plot the staggered-adoption diff-in-diff ("event study") estimates
+d 
+d  This routine plots the staggered-adoption diff-in-diff ("event
+d study") estimates: coefficients post treatment ("lags") and,
+d if available, pre-trend coefficients   ("leads") along with
+d confidence intervals (CIs).  This command is used once
+d estimates have been produced by the imputation estimator of
+d Borusyak et al. 2021 (did_imputation), other methods robust to
+d treatment effect    heterogeneity (did_multiplegt, csdid,
+d eventstudyinteract), and conventional event-study    OLS.
+d 
+d KW: treatment effects
+d KW: DiD
+d KW: event study
+d 
+d Requires: Stata version 13
+d 
+d Distribution-Date: 20210608
+d 
+d Author: Kirill Borusyak ,  University College London
+d Support: email k.borusyak@@ucl.ac.uk
+d 
+f e/event_plot.ado
+f e/event_plot.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/d
+N did_multiplegt.pkg
+D 18 Jul 2021
+U 7
+d 'DID_MULTIPLEGT': module to estimate sharp Difference-in-Difference designs with multiple groups and periods
+d 
+d     did_multipleGT can be used in DID designs with multiple
+d groups and periods, and where all units in the same group
+d and period have the same treatment (sharp designs), as is for
+d instance the case when the treatment is a county-    or
+d state-level variable. It computes the Wald-TC estimator of the
+d instantaneous treatment effect among       switchers introduced
+d in Section 3.3 of Chaisemartin and D'Haultfoeuille (2018).  It
+d also computes placebo        estimators that can be used to
+d assess the plausibility of the common trends assumption
+d underlying the Wald-TC estimator (see Section 3.3 of
+d Chaisemartin and D'Haultfoeuille, 2018).  Finally, in staggered
+d adoption designs   where treatment is binary and where
+d groups' treatment is weakly increasing with time, it computes
+d Wald-TC  estimators of the dynamic treatement effects among
+d switchers (see Section 5.2 of Chaisemartin and
+d D'Haultfoeuille, 2018).
+d 
+d KW: DID
+d KW: binary treatment
+d KW: sharp design
+d 
+d Requires: Stata version 13.1 and fuzzydid from SSC (q.v.)
+d 
+d Distribution-Date: 20210601
+d 
+d Author:  Clément de Chaisemartin, University of California at Santa Barbara
+d Support: email  clementdechaisemartin@@ucsb.edu
+d 
+d Author:   Xavier D'Haultfoeuille, CREST
+d Support: email   xavier.dhaultfoeuille@@ensae.fr
+d 
+d Author:  Yannick Guyonvarch, CREST
+d Support: email   yannick.guyonvarch@@ensae.fr
+d 
+f d/did_multiplegt.ado
+f d/did_multiplegt.sthlp
+e
+S https://raw.githubusercontent.com/friosavila/csdid_drdid/main/code
+N csdid.pkg
+D 18 Jul 2021
+U 8
+d CSDID: Treatment Effects with Multiple Periods and Groups
+d 
+d Authors:
+d Support:
+d 
+d csdid computes average treatment effect parameters in difference-in-differences setups with
+d more than two periods and with variation in treatment timing using the methods developed in
+d Callaway and Sant'Anna (2020) <https://www.ssrn.com/abstract=3148250>.
+d The main parameters are group-time average treatment effects which are the average
+d treatment effect for a particular group at a particular time.
+d 
+d For details (user guide, help, FAQ), see the website:
+d https://github.com/friosavila/csdid_drdid
+d 
+d KW: treatment effects
+d KW: difference in differences
+d KW: att
+d 
+d Requires: Stata version ??
+d 
+d Required packages:
+d  drdid
+d 
+d Distribution-Date: 20210511
+d 
+f c/csdid.ado
+f d/drdid.ado
+f c/csdid_estat.ado
+f c/csdid.sthlp
+e
+S https://haghish.github.io/github
+N github.pkg
+D 18 Jul 2021
+U 9
+d 'GITHUB': github package manager
+d 
+d search, install, and manage github packages
+d 
+d Distribution-Date:   20210603
+d License: MIT
+d 
+f a/abspath.ado
+f a/abspath.sthlp
+f g/gitget.ado
+f g/gitget.dta
+f g/gitget.sthlp
+f g/gitgetlist.ado
+f g/github.ado
+f g/github.dlg
+f g/github.sthlp
+f g/githubcheck.ado
+f g/githubcheckfilename.ado
+f g/githubconfirm.ado
+f g/githubdb.ado
+f g/githubdependency.ado
+f g/githubfiles.dta
+f g/githubfindall.ado
+f g/githubfindall.sthlp
+f g/githubhot.ado
+f g/githublistpack.ado
+f g/githublistpack.sthlp
+f g/githubmake.ado
+f g/githuboutput.ado
+f g/githubquery.ado
+f g/githubsearch.ado
+f g/githubsearchsteps.ado
+f m/make.ado
+f m/make.dlg
+f m/make.sthlp
+f m/makedlg.ado
+e
+S https://raw.githubusercontent.com/lsun20/eventstudyinteract/master
+N eventstudyinteract.pkg
+D 18 Jul 2021
+U 10
+d 'EVENTSTUDYINTERACT': interaction weighted estimator
+d Distribution-Date:   20210331
+d License: MIT
+d 
+f e/eventstudyinteract.ado
+f e/eventstudyinteract.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/a
+N avar.pkg
+D 18 Jul 2021
+U 11
+d 'AVAR': module to perform asymptotic covariance estimation for iid and non-iid data robust to heteroskedasticity, autocorrelation, 1- and 2-way clustering, and common cross-panel autocorrelated dis
+d 
+d  avar} is a routine for estimating S, the asymptotic variance of
+d (1/N)*Z'e, where Z is an NxL matrix of L variables, e is an Nxp
+d matrix of p variables, and N is the sample size. Typically, S
+d would be used to form a sandwich-type estimate of the variance of
+d an estimator, where S is the "filling" of the sandwich. avar can
+d estimate VCEs for single and multiple equations that are robust
+d to various violations of the assumption of iid data, including
+d heteroskedasticity, autocorrelation, 1- and 2-way clustering,
+d common cross-panel disturbances, etc. It supports time-series and
+d panel data.
+d 
+d KW: asymptotic variance
+d KW: VCE
+d KW: heteroskedasticity
+d KW: autocorrelation
+d KW: cluster-robust
+d KW: cross-equation correlation
+d 
+d Requires: Stata version 11.2 (version 9.2 for avar9)
+d 
+d Distribution-Date: 20150730
+d 
+d Author: Christopher F Baum, Boston College
+d Support: email baum@@bc.edu
+d 
+d Author: Mark E Schaffer, Heriot-Watt University
+d Support: email m.e.schaffer@@hw.ac.uk
+d 
+f a/avar.ado
+f a/avar9.ado
+f a/avar.sthlp
+f l/livreg2.mlib
+e
+S https://raw.githubusercontent.com/joshbleiberg/stackedev/master
+N stackedev.pkg
+D 18 Jul 2021
+U 12
+d 'stackedev': stacked event study
+d Distribution-Date:   20210625
+d 
+f s/stackedev.ado
+e
+S http://fmwww.bc.edu/repec/bocode/b
+N blindschemes.pkg
+D 18 Jul 2021
+U 13
+d 'BLINDSCHEMES': module to provide graph schemes sensitive to color vision deficiency
+d 
+d  While Stata's computational capabilities have intensively
+d increased over the last decade, the quality of its default figure
+d schemes is still a matter of debate amongst users. Clearly some
+d of the arguments speaking against Stata figures are subject to
+d individual taste, but others are not, such as for instance:
+d horizontal labelling, unnecessary background tinting, missing
+d gridlines, oversized markers. The two schemes introduced here
+d attempt to solve the major shortcomings of Stata's default figure
+d schemes.  The schemes come with 21 new colors, of which seven
+d colors are distinguishable for people suffering from color
+d blindness.  This package provides users with four new figure
+d schemes: plotplain (plain and simple plotting environment, avoids
+d chartjunk); plotplainblind (plain and simple plotting
+d environment, avoids chartjunk + colorblind friendly); plottig
+d (replicates R ggplot in most regards); plottigblind (replicates R
+d ggplot in most regards + colorblind friendly)
+d 
+d KW: graphics
+d KW: schemes
+d KW: color vision deficiency
+d KW: color blindness
+d KW: chartjunk
+d 
+d Requires: Stata version 12
+d 
+d Distribution-Date: 20200807
+d 
+d Author: Daniel Bischof, University of Zurich
+d Support: email bischof@@ipz.uzh.ch
+d 
+f b/blindschemes.sthlp
+f s/scheme-plotplain.scheme
+f s/scheme-plotplainblind.scheme
+f s/scheme-plottig.scheme
+f s/scheme-plottigblind.scheme
+f p/plotplain.sthlp
+f p/plotplainblind.sthlp
+f p/plottig.sthlp
+f p/plottigblind.sthlp
+f style/color-vermillion.style
+f style/color-sky.style
+f style/color-reddish.style
+f style/color-orangebrown.style
+f style/color-ananas.style
+f style/color-turquoise.style
+f style/color-sea.style
+f style/color-plb1.style
+f style/color-plb2.style
+f style/color-plb3.style
+f style/color-plg1.style
+f style/color-plg2.style
+f style/color-plg3.style
+f style/color-pll1.style
+f style/color-pll2.style
+f style/color-pll3.style
+f style/color-plr1.style
+f style/color-plr2.style
+f style/color-ply1.style
+f style/color-ply2.style
+f style/color-ply3.style
+e

@@ -1,0 +1,147 @@
+* developed by E. F. Haghish - 2018
+
+VERSION 12
+POSITION . . 380 175
+
+// Specify package license
+//      https://help.github.com/articles/licensing-a-repository/
+LIST language_list
+BEGIN
+	Stata
+	SAS
+	R
+	Python
+	Matlab
+	Mathematica
+	all
+END
+
+LIST in_list
+BEGIN
+	name, description
+	name
+	description
+	readme
+	all
+END
+
+LIST date_list
+BEGIN
+	created
+	updated
+END
+
+
+DIALOG make, label("github search") 
+BEGIN
+	
+	// pkg
+	CHECKBOX all  10    10   @   .  , option(all) default(0) ///
+	         label("show GitHub repositories that are not installable Stata packages") 
+			 
+	// net
+	CHECKBOX net  10    +20   @   .  , option(net) default(0) ///
+	         label("include packages outside GitHub (SJ, net, ssc, etc)") 
+	
+	// other Stata resources
+	CHECKBOX local  10    +20   @   .  , option(local) default(0) ///
+	         label("include local resources from Stata (FAQs, etc)") 
+
+	/*
+	// select installable files
+	TEXT tx_pkginfo  10   +40  . ., label("Package information")
+	*/
+	
+	// title of the document
+	TEXT tx_keyword 10 +40 . ., label("keywords")
+	EDIT keyword    80 @ 285 19 , default("")
+	
+	// in
+	TEXT tx_in  10   +25  . 310, label("search in")
+	COMBOBOX in  80    @  130  .  , dropdownlist contents(in_list)
+	
+	// language
+	TEXT tx_language  10   +25  . 310, label("language")
+	COMBOBOX language  80    @  130  .  , dropdownlist contents(language_list)
+	
+	/*
+	// date search
+	TEXT tx_date  10   +40  . 310, label("limit your search to a date range (optional)")
+	COMBOBOX date  10    +25  70  .  , dropdownlist contents(date_list)
+	TEXT tx_from  80   @  112 ., label("from")
+	EDIT from     115   @    90  19  , default("YYYY-MM-DD")
+	TEXT tx_to  215   @  300 ., label("to")
+	EDIT to     235   @    90  19  , default("YYYY-MM-DD")
+	*/
+	
+
+	
+END
+
+OK ok1,      label("OK")
+CANCEL can1, label("Cancel")
+SUBMIT sub1, label("Submit")
+HELP hlp1,   view("help github")
+RESET res1
+*COPY copy1
+
+
+
+
+
+// ---------------------------------------------------------
+// MAKE COMMAND
+// =========================================================
+PROGRAM command
+BEGIN	
+
+	// search command
+	put "github search "
+	put make.keyword
+	
+	// adding the option's comma if an option is needed
+	/*
+	if (make.all | make.net | make.local | !make.language.iseq("Stata") | !make.in.iseq("name") | (!make.from.iseq("YYYY-MM-DD") & !make.to.iseq("YYYY-MM-DD"))) {
+	  put ", "
+	}
+	*/
+	
+	if (make.all | make.net | make.local | !make.language.iseq("Stata") | !make.in.iseq("name, description")) {
+	  put ", "
+	}
+	
+	
+	option make.all						 
+	option make.net
+	option make.local
+	
+	if (!make.language.iseq("Stata")) {
+			put " language("
+			put make.language
+			put ") "
+	}
+	
+	if (!make.in.iseq("name, description")) {
+			put `" in(""'
+			put make.in
+			put `"") "'
+	}
+	
+	/*
+	if (!make.from.iseq("YYYY-MM-DD") & !make.to.iseq("YYYY-MM-DD")) {
+	  put " " make.date "("
+	  put make.from
+	}
+	
+	if (!make.from.iseq("YYYY-MM-DD") & !make.to.iseq("YYYY-MM-DD") & !make.from.iseq(">") & !make.from.iseq(">=") & !make.from.iseq("<") & !make.from.iseq("<=")) {
+	  put ".."
+	}
+	
+	if (!make.from.iseq("YYYY-MM-DD") & !make.to.iseq("YYYY-MM-DD")) {
+	  put make.to
+	  put ") "
+	}
+	*/
+		
+END
+
