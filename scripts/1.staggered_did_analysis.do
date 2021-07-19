@@ -5,7 +5,7 @@
 	timer clear
 	set seed 10
 	global T = 15
-	global I = 500
+	global I = 400
 
 	set obs `=$I*$T'
 	gen i = int((_n-1)/$T )+1 		// unit id
@@ -266,7 +266,7 @@ event_plot btrue# bjs dcdh_b#dcdh_v cs_b#cs_v sa_b#sa_v did2s_b#did2s_v stackede
 	stub_lag(tau# tau# Effect_# T+# L#event L#event L#event L#event) stub_lead(pre# pre# Placebo_# T-# F#event F#event F#event F#event) ///
 	plottype(scatter) ciplottype(rcap) ///
 	together perturb(-0.325(0.1)0.325) trimlead(5) noautolegend ///
-	graph_opt(title("Event study estimators in a simulated panel (500 units, 15 periods)", size(med)) ///
+	graph_opt(title("Event study estimators in a simulated panel (400 units, 15 periods)", size(med)) ///
 		xtitle("Periods since the event", size(small)) ytitle("Average causal effect", size(small)) xlabel(-5(1)5)  ///
 		legend(order(1 "True value" 2 "Borusyak et al." 4 "de Chaisemartin-D'Haultfoeuille" ///
 				6 "Callaway-Sant'Anna" 8 "Sun-Abraham" 10 "Gardner" 12 "Cengiz et al." 14 "TWFE OLS") rows(2) position(6) region(style(none))) ///
@@ -289,7 +289,7 @@ event_plot btrue# bjs dcdh_b#dcdh_v cs_b#cs_v sa_b#sa_v did2s_b#did2s_v stackede
 	stub_lag(tau# tau# Effect_# T+# L#event L#event L#event L#event) stub_lead(pre# pre# Placebo_# T-# F#event F#event F#event F#event) ///
 	plottype(scatter) ciplottype(rcap) ///
 	together perturb(-0.325(0.1)0.325) trimlead(14) noautolegend ///
-	graph_opt(title("Event study estimators in a simulated panel (500 units, 15 periods)", size(med)) ///
+	graph_opt(title("Event study estimators in a simulated panel (400 units, 15 periods)", size(med)) ///
 		xtitle("Periods since the event", size(small)) ytitle("Average causal effect", size(small)) xlabel(-14(1)5)  ///
 		legend(order(1 "True value" 2 "Borusyak et al." 4 "de Chaisemartin-D'Haultfoeuille" ///
 				6 "Callaway-Sant'Anna" 8 "Sun-Abraham" 10 "Gardner" 12 "Cengiz et al." 14 "TWFE OLS") rows(2) position(6) region(style(none))) ///
