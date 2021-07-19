@@ -1,0 +1,717 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/Pietro/Dropbox/Projects/staggered_did/scripts/logs/2021.07.18-16.02.59.log.txt
+  log type:  text
+ opened on:  18 Jul 2021, 16:02:59
+
+. 
+. di "Begin date and time: $S_DATE $S_TIME"
+Begin date and time: 18 Jul 2021 16:02:59
+
+. di "Stata version: `c(stata_version)'"
+Stata version: 16.1
+
+. di "Updated as of: `c(born_date)'"
+Updated as of: 30 Jun 2021
+
+. di "Variant:       `=cond( c(MP),"MP",cond(c(SE),"SE",c(flavor)) )'"
+Variant:       MP
+
+. di "Processors:    `c(processors)'"
+Processors:    2
+
+. di "OS:            `c(os)' `c(osdtl)'"
+OS:            MacOSX 11.4.0
+
+. di "Machine type:  `c(machine_type)'"
+Machine type:  Macintosh (Intel 64-bit)
+
+. 
+. // Set Date
+. global date = subinstr("$S_DATE", " ", "-", .)
+
+. 
+. // Version of stata
+. version 16
+
+. 
+. // Specify Screen Width for log files
+. set linesize 255
+
+. 
+. // Set font type
+. graph set window fontface "Roboto"
+
+. 
+. // Set Graph Scheme
+. graph set window fontface default
+
+. set scheme plotplainblind
+
+. 
+. // Allow the screen to move without having to click more
+. set more off
+
+. 
+. // Drop everything in mata
+. matrix drop _all
+
+. 
+. // Run do files
+. *=============================================================================*
+. 
+. // Run script
+. if $run_did == 1 {
+.         do $script_path/1.staggered_did_analysis.do
+
+. /*
+>         This simulated example illustrates how to estimate causal effects with event studies using a range of methods
+>         and plot the coefficients & confidence intervals using the event_plot command.
+>         
+>         Date: 28/05/2021
+>         Author: Kirill Borusyak (UCL), k.borusyak@ucl.ac.uk
+> 
+> */
+. 
+. /*
+>         This code written by Kirill Borusyak has been adapted by David Burgherr
+>         (LSE, d.m.burgherr@lse.ac.uk) for the Metrics Reading Group meeting
+>         organized by Chloe East on 08/07/2021.
+>         
+>         Thanks to Kirill for kindly allowing us to post the adapted version of
+>         the code.
+> */
+. 
+. 
+. // Generate a complete panel of 300 units observed in 15 periods
+. 
+.         clear all
+
+.         timer clear
+
+.         set seed 10
+
+.         global T = 15
+
+.         global I = 300
+
+. 
+.         set obs `=$I*$T'
+number of observations (_N) was 0, now 4,500
+
+.         gen i = int((_n-1)/$T )+1               // unit id
+
+.         gen t = mod((_n-1),$T )+1               // calendar period
+
+.         tsset i t
+       panel variable:  i (strongly balanced)
+        time variable:  t, 1 to 15
+                delta:  1 unit
+
+. 
+.         
+. // Randomly generate treatment rollout periods uniformly across Ei=10..16
+. // (note that periods t>=16 would not be useful since all units are treated by then)
+. 
+.         *Period when unit is first treated
+.         gen Ei = ceil(runiform()*7)+$T -6 if t==1
+(4,200 missing values generated)
+
+.         bys i (t): replace Ei = Ei[1]
+(4200 real changes made)
+
+.         
+.         *Relative time, i.e. number of periods since treated (could be missing if never treated)
+.         gen K = t-Ei
+
+.         
+.         *Treatment indicator
+.         gen D = K>=0 & Ei!=.
+
+. 
+.         
+. // Generate the outcome with parallel trends and heterogeneous treatment effects
+. 
+.         *Heterogeneous treatment effects (in this case vary over calendar periods)
+.         gen tau = cond(D==1, (t-12.5), 0)
+
+.         
+.         *Error term
+.         gen eps = rnormal()
+
+.         
+.         *Outcome (FEs play no role since all methods control for them)
+.         gen Y = i + 3*t + tau*D + eps
+
+. 
+.                 
+.                 
+.                 
+. // did_imputation of Borusyak et al. (2021)
+. 
+.         *Estimation
+.         did_imputation Y i t Ei, allhorizons pretrends(5)
+
+                                                Number of obs     =      4,500
+------------------------------------------------------------------------------
+           Y |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        tau0 |   .0854326   .0797319     1.07   0.284     -.070839    .2417042
+        tau1 |   .6695374   .0837474     7.99   0.000     .5053955    .8336792
+        tau2 |   1.083881   .1012331    10.71   0.000     .8854674    1.282294
+        tau3 |   1.604685   .1332701    12.04   0.000      1.34348    1.865889
+        tau4 |   1.918663   .1531139    12.53   0.000     1.618565     2.21876
+        tau5 |   2.651424   .2432302    10.90   0.000     2.174701    3.128146
+        pre1 |  -.0890417   .1243881    -0.72   0.474    -.3328379    .1547546
+        pre2 |  -.0223983   .1062934    -0.21   0.833    -.2307295    .1859329
+        pre3 |  -.0667799   .1004296    -0.66   0.506    -.2636183    .1300586
+        pre4 |  -.0144644    .087886    -0.16   0.869    -.1867178    .1577889
+        pre5 |  -.0334828   .0714538    -0.47   0.639    -.1735297    .1065641
+------------------------------------------------------------------------------
+
+.         // Y:   outcome variable
+.         // i:   unit id variable
+.         // t:   time period variable
+.         // Ei:  variable for unit-specific treatment date (never-treated: Ei == missing)
+. 
+.         // allhorizons: include all non-negative horizons available
+.         // pretrends(): number of pre-treatment coefficients to be estimated
+.         // standard errors are clustered at unit level by default
+. 
+.         *Plotting
+.         event_plot, default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") ///
+>                 title("Borusyak et al. (2021) imputation estimator") xlabel(-5(1)5) name(BJS, replace))
+
+. 
+.         *Storing estimates for later
+.         estimates store bjs
+
+.         
+.         
+. // did_multiplegt of de Chaisemartin and D'Haultfoeuille (2020)
+. 
+.         *Estimation
+.         did_multiplegt Y i t D, robust_dynamic dynamic(5) placebo(5) longdiff_placebo breps(100) cluster(i)
+
+DID estimators of the instantaneous treatment effect, of dynamic treatment effects if the dynamic option is used, and of placebo tests of the parallel trends assumption if the
+placebo option is used. The estimators are robust to heterogeneous effects, and to dynamic effects if the robust_dynamic option is used.
+
+             |  Estimate         SE      LB CI      UB CI          N  Switchers 
+-------------+------------------------------------------------------------------
+    Effect_0 |  .1408578   .1581723    -.16916   .4508756       1211        250 
+    Effect_1 |  .7141733   .1371814   .4452979   .9830488        899        205 
+    Effect_2 |  1.132017   .1400374   .8575438    1.40649        628        164 
+    Effect_3 |  1.565301   .1709356   1.230268   1.900335        398        117 
+    Effect_4 |  1.899413   .2036894   1.500182   2.298644        215         70 
+    Effect_5 |  2.773816   .3108357   2.164578   3.383054         83         33 
+   Placebo_1 |  .0482671   .1020707  -.1517915   .2483257       1211        250 
+   Placebo_2 |  .0460625   .1096916  -.1689331    .261058        899        205 
+   Placebo_3 |  .0305153   .1082104  -.1815771   .2426078        628        164 
+   Placebo_4 | -.0692496   .1461691   -.355741   .2172418        398        117 
+   Placebo_5 |  .0299686   .1821709  -.3270864   .3870236        215         70 
+
+.         // Y:   outcome variable
+.         // i:   unit id variable
+.         // t:   time period variable
+.         // D:   treatment variable
+.         
+.         // robust_dynamic: uses estimator from dCdH (2021) on DID with intertemporal effects
+.         // dynamic(): number of dynamic treatment effects to be estimated (can only be used with robust_dynamic)
+.         // placebo(): number of placebo estimates to be estimated
+.         // longdiff_placebo: estimates placebo effects using long differences (comparable to dynamic TE estimates)
+.         // breps(): number of bootstrap iterations for computation of standard errors
+.         // cluster(i): computes standard errors using block bootstrap at level specified
+.         
+.         // Note that, according to the help file, by default "placebos are
+.         // first-difference estimators, while dynamic effects are long-difference
+.         // estimators, so they are not really comparable." Thus, we should not plot
+.         // and compare them in the same graph, if the "longdiff_placebo" option is
+.         // not specified.
+. 
+.         *Plotting
+.         event_plot e(estimates)#e(variances), default_look graph_opt(xtitle("Periods since the event") ///
+>                 ytitle("Average causal effect") title("de Chaisemartin and D'Haultfoeuille (2020)") xlabel(-5(1)5) ///
+>                 name(dCdH, replace)) stub_lag(Effect_#) stub_lead(Placebo_#) together
+
+.         // bmat#vmat: name of point estimate matrix and name of variance-covariance matrix
+.         // stub_lag((prefix#postfix): name of lag coefficients in estimation output
+.         // stub_lead(prefix#postfix): name of lead coefficients in estimation output
+.         // graph_opt(): twoway options for graph overall
+.         // together: show leads and lags as one line
+. 
+.         *Storing estimates for later
+.         matrix dcdh_b = e(estimates)
+
+.         matrix dcdh_v = e(variances)
+
+. 
+. 
+. // csdid of Callaway and Sant'Anna (2020) (v1.5 written by Fernando Rios-Avila @friosavila)
+. 
+.         *Preparation
+.         gen gvar = cond(Ei>15, 0, Ei) // group variable as required for the csdid command
+
+. 
+.         *Estimation
+.         csdid Y, ivar(i) time(t) gvar(gvar) agg(event)
+..................................................
+..................................
+Difference-in-difference with Multiple Time Periods
+Outcome model  : 
+Treatment model: 
+------------------------------------------------------------------------------
+             |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        T-13 |   .2188358   .3212877     0.68   0.496    -.4108766    .8485482
+        T-12 |   .1273597   .1852821     0.69   0.492    -.2357865    .4905059
+        T-11 |    -.02517   .1439547    -0.17   0.861     -.307316    .2569759
+        T-10 |  -.1881251   .1275888    -1.47   0.140    -.4381946    .0619444
+         T-9 |   .1412626   .1100723     1.28   0.199    -.0744751    .3570004
+         T-8 |   .0187222   .1021885     0.18   0.855    -.1815636     .219008
+         T-7 |   .0676864   .1006048     0.67   0.501    -.1294954    .2648682
+         T-6 |   .0376543   .0936337     0.40   0.688    -.1458645     .221173
+         T-5 |  -.0475116    .092058    -0.52   0.606    -.2279419    .1329187
+         T-4 |  -.0201955   .0962416    -0.21   0.834    -.2088256    .1684346
+         T-3 |  -.0813587   .0922127    -0.88   0.378    -.2620923    .0993749
+         T-2 |   .0369195   .1040824     0.35   0.723    -.1670782    .2409172
+         T-1 |  -.1017394    .096748    -1.05   0.293     -.291362    .0878832
+           T |   .1056287   .1474409     0.72   0.474    -.1833502    .3946076
+         T+1 |   .6319118   .1459604     4.33   0.000     .3458348    .9179889
+         T+2 |    .994586   .1600968     6.21   0.000      .680802     1.30837
+         T+3 |   1.465402   .1836568     7.98   0.000     1.105441    1.825363
+         T+4 |   1.820726    .218239     8.34   0.000     1.392986    2.248467
+         T+5 |   2.773816   .2889227     9.60   0.000     2.207538    3.340094
+------------------------------------------------------------------------------
+Control: Never Treated
+
+See Callaway and Sant'Anna (2021) for details
+
+.         // Y:           outcome variable
+.         // ivar():      unit id variable
+.         // time():      time period variable
+.         // gvar():      variable for unit-specific treatment date (never treated: gvar == 0)
+.         // (defines "group" in CS jargon)
+.         
+.         // agg(): aggregation to use
+.         // wboot: Wild Bootstrap standard errors (default is asymptotic normal)
+.         // cluster(): should in principle be possible but throws an error (for me at least)
+.         // by default uses never treated units as control group (could specify "notyet")
+.         
+.         // Note that this command is work in progress. As such, it may subject to
+.         // ongoing changes. For example, the wboot option currently seems to
+.         // throw an error if specified. Further, the confidence intervals are not
+.         // yet correct (not uniform as in CS).
+.         
+.         // Also, note that Nick Huntington-Klein provides a Stata package that
+.         // acts as a wrapper for the "did" package by CS in R (via rcall, i.e. 
+.         // need to have R installed). It is available on his github page:
+.         // https://github.com/NickCH-K/did
+. 
+.         *Plotting
+.         event_plot e(b)#e(V), default_look graph_opt(xtitle("Periods since the event") ///
+>                 ytitle("Average causal effect") xlabel(-14(1)5) title("Callaway and Sant'Anna (2020)") name(CS, replace)) ///
+>                 stub_lag(T+#) stub_lead(T-#) together
+
+. 
+.         *Storing estimates for later
+.         matrix cs_b = e(b)
+
+.         matrix cs_v = e(V)
+
+. 
+. 
+. // eventstudyinteract of Sun and Abraham (2020)
+. 
+.         *Preparation
+.         sum Ei
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+          Ei |      4,500    13.20333    1.958616         10         16
+
+.         gen lastcohort = Ei==r(max) // dummy for the latest- or never-treated cohort
+
+.         forvalues l = 0/5 {
+  2.                 gen L`l'event = K==`l'
+  3.         }
+
+.         forvalues l = 1/14 {
+  2.                 gen F`l'event = K==-`l'
+  3.         }
+
+.         drop F1event // normalize K=-1 (and also K=-15) to zero
+
+. 
+.         *Estimation
+.         eventstudyinteract Y L*event F*event, vce(cluster i) absorb(i t) cohort(Ei) control_cohort(lastcohort)
+(obs=3,750)
+
+IW estimates for dynamic effects                Number of obs     =      4,500
+Absorbing 2 HDFE groups                         F(  84,    299)   =       9.76
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.9999
+                                                Adj R-squared     =     0.9999
+                                                Root MSE          =     1.0193
+                                    (Std. Err. adjusted for 300 clusters in i)
+------------------------------------------------------------------------------
+             |               Robust
+           Y |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     L0event |   .1056287   .1482301     0.71   0.477    -.1860777    .3973351
+     L1event |   .6319118   .1468811     4.30   0.000     .3428601    .9209635
+     L2event |    .994586   .1614872     6.16   0.000     .6767906    1.312381
+     L3event |   1.465402   .1856374     7.89   0.000     1.100081    1.830723
+     L4event |   1.820726   .2208452     8.24   0.000     1.386118    2.255334
+     L5event |   2.773816   .2926099     9.48   0.000     2.197981    3.349652
+     F2event |   .1017394   .0979606     1.04   0.300    -.0910401    .2945189
+     F3event |   .0648199   .0983867     0.66   0.511    -.1287982     .258438
+     F4event |   .1461786   .1095838     1.33   0.183    -.0694747    .3618319
+     F5event |   .1663741   .1159094     1.44   0.152    -.0617274    .3944756
+     F6event |   .2138857   .1259702     1.70   0.091    -.0340147    .4617861
+     F7event |   .1762314    .130424     1.35   0.178    -.0804338    .4328967
+     F8event |    .108545   .1315387     0.83   0.410    -.1503139     .367404
+     F9event |   .0898229   .1304161     0.69   0.492    -.1668269    .3464727
+    F10event |  -.0547342   .1383867    -0.40   0.693    -.3270695     .217601
+    F11event |   .1654071   .1401862     1.18   0.239    -.1104695    .4412837
+    F12event |    .246519   .1614703     1.53   0.128    -.0712432    .5642812
+    F13event |   .0815817   .2090376     0.39   0.697    -.3297896     .492953
+    F14event |  -.0721133   .2990577    -0.24   0.810    -.6606378    .5164112
+------------------------------------------------------------------------------
+
+.         // Y: outcome variable
+.         // L*event: lags to include
+.         // F*event: leads to include
+.         // vce(): options for variance-covariance matrix (cluster SE)
+.         // absorb(): absorb unit and time fixed effects
+.         // cohort(): variable for unit-specific treatment date (never-treated: Ei == missing)
+.         // control_cohort(): indicator variable for control cohort (either latest-treated or never-treated units)
+. 
+.         *Plotting
+.         event_plot e(b_iw)#e(V_iw), default_look graph_opt(xtitle("Periods since the event") ///
+>                 ytitle("Average causal effect") xlabel(-14(1)5) title("Sun and Abraham (2020)") name(SA, replace)) ///
+>                 stub_lag(L#event) stub_lead(F#event) together
+
+. 
+.         *Storing estimates for later
+.         matrix sa_b = e(b_iw)
+
+.         matrix sa_v = e(V_iw)
+
+. 
+. 
+. // did2s of Gardner (2021)
+. 
+.         * Estimation
+.         did2s Y, first_stage(i.i i.t) second_stage(F*event L*event) treatment(D) cluster(i)
+                                      (Std. Err. adjusted for clustering on i)
+------------------------------------------------------------------------------
+             |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     F2event |   .0257945   .0503595     0.51   0.609    -.0729084    .1244973
+     F3event |  -.0258836   .0524681    -0.49   0.622    -.1287191    .0769519
+     F4event |   .0172448   .0535885     0.32   0.748    -.0877867    .1222764
+     F5event |  -.0092966   .0503084    -0.18   0.853    -.1078992     .089306
+     F6event |   .0208989   .0533857     0.39   0.695    -.0837351    .1255329
+     F7event |   .0314151   .0525516     0.60   0.550    -.0715841    .1344143
+     F8event |  -.0145298   .0559673    -0.26   0.795    -.1242237     .095164
+     F9event |   .0166636   .0537188     0.31   0.756    -.0886232    .1219505
+    F10event |  -.0903312   .0617293    -1.46   0.143    -.2113184    .0306559
+    F11event |   .0478202   .0608289     0.79   0.432    -.0714023    .1670427
+    F12event |   .0717971    .069122     1.04   0.299    -.0636795    .2072736
+    F13event |  -.0043566   .0804041    -0.05   0.957    -.1619456    .1532325
+    F14event |  -.1210117   .0932665    -1.30   0.194    -.3038106    .0617872
+     L0event |   .0854318   .1362909     0.63   0.531    -.1816935    .3525571
+     L1event |   .6695364   .1275331     5.25   0.000     .4195761    .9194967
+     L2event |   1.083881   .1295616     8.37   0.000     .8299446    1.337817
+     L3event |   1.604685   .1530878    10.48   0.000     1.304638    1.904731
+     L4event |   1.918662   .1681405    11.41   0.000     1.589113    2.248212
+     L5event |   2.651425   .2432249    10.90   0.000     2.174713    3.128137
+------------------------------------------------------------------------------
+
+.         // Y: outcome variable
+.         // first_stage(): fixed effects used to estimate counterfactual Y_it(0). This should be everything besides treatment
+.         // second_stage(): treatment such as dummy variable or event-study leads and lags
+.         // cluster(): variable to cluster on 
+. 
+.         
+.         *Plotting
+.         event_plot, default_look stub_lag(L#event) stub_lead(F#event) together ///
+>                 graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") xlabel(-14(1)5) ///
+>                 title("Gardner (2021)") name(DID2S, replace))
+
+.                 
+.         *Saving estimates for later
+.         matrix did2s_b = e(b)
+
+.         matrix did2s_v = e(V)
+
+. 
+.         
+. // stackedev of Cengiz et al. (2019) 
+. 
+.         *Create a variable equal to the time that the unit first received treatment. It must be missing for never treated units.
+.         gen treat_year=.
+(4,500 missing values generated)
+
+.         replace treat_year=Ei if Ei!=16
+(3,750 real changes made)
+
+. 
+.         *Create never treated indicator that equals one if a unit never received treatment and zero if it did.
+.         gen no_treat= (Ei==16)
+
+. 
+.         *Preparation
+.         cap drop F*event L*event
+
+.         sum Ei
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+          Ei |      4,500    13.20333    1.958616         10         16
+
+.         forvalues l = 0/5 {
+  2.                 gen L`l'event = K==`l'
+  3.                 replace L`l'event = 0 if no_treat==1
+  4.         }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+.         forvalues l = 1/14 {
+  2.                 gen F`l'event = K==-`l'
+  3.                 replace F`l'event = 0 if no_treat==1
+  4.         }
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+(50 real changes made)
+
+.         drop F1event // normalize K=-1 (and also K=-15) to zero
+
+. 
+.         * Run stackedev         
+.         preserve
+
+.         stackedev Y F*event L*event, cohort(treat_year) time(t) never_treat(no_treat) unit_fe(i) clust_unit(i) 
+**** Building Stack 10 ****
+**** Building Stack 11 ****
+**** Building Stack 12 ****
+**** Building Stack 13 ****
+**** Building Stack 14 ****
+**** Building Stack 15 ****
+**** Appending Stacks ****
+**** Estimating Model with reghdfe ****
+(MWFE estimator converged in 2 iterations)
+
+HDFE Linear regression                            Number of obs   =      8,250
+Absorbing 2 HDFE groups                           F(  19,    508) =      27.30
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.9999
+                                                  Adj R-squared   =     0.9998
+                                                  Within R-sq.    =     0.0658
+Number of clusters (unit_stack) =        509      Root MSE        =     1.0677
+
+                           (Std. Err. adjusted for 509 clusters in unit_stack)
+------------------------------------------------------------------------------
+             |               Robust
+           Y |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     F2event |   .1084324    .121678     0.89   0.373    -.1306218    .3474865
+     F3event |   .0628211   .1205689     0.52   0.603    -.1740539    .2996962
+     F4event |   .1413001   .1227802     1.15   0.250    -.0999194    .3825196
+     F5event |   .1630072   .1201504     1.36   0.175    -.0730456    .3990601
+     F6event |   .2103992   .1266615     1.66   0.097    -.0384457    .4592441
+     F7event |   .1701911   .1249198     1.36   0.174    -.0752319    .4156141
+     F8event |   .1034944   .1249225     0.83   0.408     -.141934    .3489227
+     F9event |   .0928377   .1219308     0.76   0.447     -.146713    .3323885
+    F10event |  -.1580959   .1301125    -1.22   0.225    -.4137207    .0975289
+    F11event |  -.0675226   .1355003    -0.50   0.618    -.3337325    .1986872
+    F12event |  -.1204821   .1465445    -0.82   0.411    -.4083899    .1674257
+    F13event |  -.3162439   .1825222    -1.73   0.084    -.6748352    .0423474
+    F14event |  -.4559989   .2335852    -1.95   0.051    -.9149107     .002913
+     L0event |   .0461628   .1452865     0.32   0.751    -.2392736    .3315993
+     L1event |   .6581465   .1486514     4.43   0.000     .3660993    .9501936
+     L2event |   1.131988   .1480329     7.65   0.000     .8411555     1.42282
+     L3event |   1.810282   .1674209    10.81   0.000      1.48136    2.139205
+     L4event |   2.347299   .1845738    12.72   0.000     1.984677    2.709921
+     L5event |    3.36995   .2510565    13.42   0.000     2.876713    3.863187
+       _cons |   168.1834   .0383046  4390.68   0.000     168.1082    168.2587
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+     i#stack |       550         550           0    *|
+     t#stack |        90           0          90     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+.         restore
+
+.         // Y: outcome variable
+.         // L*event: lags to include
+.         // F*event: leads to include
+.         // time(): numerical variable equal to time
+.         // never_treat(): binary indicator that equals one if a unit never received treatment and zero if it did
+.         // unit_fe(): variable indicating unit fixed effects
+.         // clust_unit(): variable indicating the unit by which to cluster variances
+.         
+.         
+.         *Plotting
+.         event_plot e(b)#e(V), default_look graph_opt(xtitle("Periods since the event") ///
+>                 ytitle("Average causal effect") xlabel(-14(1)5) title("Cengiz et al. (2019)") name(C, replace)) ///
+>                 stub_lag(L#event) stub_lead(F#event) together   
+
+.                 
+.         *Saving estimates for later
+.         matrix stackedev_b = e(b)
+
+.         matrix stackedev_v = e(V)
+
+.         
+.         
+. // TWFE OLS estimation
+. 
+.         *Estimation
+.         reghdfe Y F*event L*event, absorb(i t) vce(cluster i)
+(MWFE estimator converged in 2 iterations)
+
+HDFE Linear regression                            Number of obs   =      4,500
+Absorbing 2 HDFE groups                           F(  19,    299) =       9.24
+Statistics robust to heteroskedasticity           Prob > F        =     0.0000
+                                                  R-squared       =     0.9999
+                                                  Adj R-squared   =     0.9998
+                                                  Within R-sq.    =     0.0402
+Number of clusters (i)       =        300         Root MSE        =     1.0771
+
+                                    (Std. Err. adjusted for 300 clusters in i)
+------------------------------------------------------------------------------
+             |               Robust
+           Y |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     F2event |   .1515895   .0941043     1.61   0.108    -.0336011      .33678
+     F3event |    .077411   .0955481     0.81   0.418    -.1106209    .2654428
+     F4event |   .0418919    .103695     0.40   0.687    -.1621726    .2459564
+     F5event |   -.056397   .1018727    -0.55   0.580    -.2568752    .1440813
+     F6event |  -.0839189   .1099596    -0.76   0.446    -.3003116    .1324738
+     F7event |  -.1451581      .1123    -1.29   0.197    -.3661565    .0758404
+     F8event |  -.2442093     .11992    -2.04   0.043    -.4802035   -.0082152
+     F9event |  -.3215572   .1237062    -2.60   0.010    -.5650022   -.0781121
+    F10event |  -.5769432   .1367868    -4.22   0.000    -.8461299   -.3077565
+    F11event |  -.4946609   .1400767    -3.53   0.000    -.7703219   -.2189998
+    F12event |  -.5532619   .1610616    -3.44   0.001    -.8702198   -.2363041
+    F13event |  -.8670837   .1837873    -4.72   0.000    -1.228764   -.5054032
+    F14event |  -1.046362   .2262946    -4.62   0.000    -1.491694   -.6010305
+     L0event |  -.1682543    .126068    -1.33   0.183    -.4163472    .0798385
+     L1event |   .3584817   .1131801     3.17   0.002     .1357512    .5812122
+     L2event |   .6104509   .1177669     5.18   0.000      .378694    .8422079
+     L3event |   .9778849   .1422656     6.87   0.000     .6979162    1.257854
+     L4event |    1.15889   .1597904     7.25   0.000     .8444335    1.473346
+     L5event |   1.634271   .2212334     7.39   0.000     1.198899    2.069643
+       _cons |   174.6904   .0642466  2719.06   0.000     174.5639    174.8168
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+           i |       300         300           0    *|
+           t |        15           0          15     |
+-----------------------------------------------------+
+* = FE nested within cluster; treated as redundant for DoF computation
+
+. 
+.         *Plotting
+.         event_plot, default_look stub_lag(L#event) stub_lead(F#event) together ///
+>                 graph_opt(xtitle("Days since the event") ytitle("OLS coefficients") xlabel(-14(1)5) ///
+>                 title("OLS") name(OLS, replace))
+
+. 
+.         *Saving estimates for later
+.         estimates store ols
+
+. 
+.         
+.         
+. // Construct vector of true average treatment effects by number of periods since treatment
+. 
+.         matrix btrue = J(1,6,.)
+
+.         matrix colnames btrue = tau0 tau1 tau2 tau3 tau4 tau5
+
+.         qui forvalues h = 0/5 {
+
+. 
+. 
+. // Combine all plots using the stored estimates
+. 
+. event_plot btrue# bjs dcdh_b#dcdh_v cs_b#cs_v sa_b#sa_v did2s_b#did2s_v stackedev_b#stackedev_v ols, ///
+>         stub_lag(tau# tau# Effect_# T+# L#event L#event L#event L#event) stub_lead(pre# pre# Placebo_# T-# F#event F#event F#event F#event) ///
+>         plottype(scatter) ciplottype(rcap) ///
+>         together perturb(-0.325(0.1)0.325) trimlead(5) noautolegend ///
+>         graph_opt(title("Event study estimators in a simulated panel (300 units, 15 periods)", size(med)) ///
+>                 xtitle("Periods since the event", size(small)) ytitle("Average causal effect", size(small)) xlabel(-5(1)5)  ///
+>                 legend(order(1 "True value" 2 "Borusyak et al." 4 "de Chaisemartin-D'Haultfoeuille" ///
+>                                 6 "Callaway-Sant'Anna" 8 "Sun-Abraham" 10 "Gardner" 12 "Cengiz et al." 14 "TWFE OLS") rows(2) position(6) region(style(none))) ///
+>         /// the following lines replace default_look with something more elaborate
+>                 xline(-0.5, lcolor(gs8) lpattern(dash)) yline(0, lcolor(gs8)) graphregion(color(white)) bgcolor(white) ylabel(, angle(horizontal)) ///
+>         ) ///
+>         lag_opt1(msymbol(+) color(black)) lag_ci_opt1(color(black)) ///
+>         lag_opt2(msymbol(O) color(cranberry)) lag_ci_opt2(color(cranberry)) ///
+>         lag_opt3(msymbol(Dh) color(navy)) lag_ci_opt3(color(navy)) ///
+>         lag_opt4(msymbol(Th) color(forest_green)) lag_ci_opt4(color(forest_green)) ///
+>         lag_opt5(msymbol(Sh) color(dkorange)) lag_ci_opt5(color(dkorange)) ///
+>         lag_opt6(msymbol(Th) color(blue)) lag_ci_opt6(color(blue)) ///
+>         lag_opt7(msymbol(Dh) color(red)) lag_ci_opt7(color(red)) ///
+>         lag_opt8(msymbol(Oh) color(purple)) lag_ci_opt8(color(purple))
+(note:  named style med not found in class gsize, default attributes used)
+
+. graph export "$output/seven_estimators_example.png", replace
+(file /Users/Pietro/Dropbox/Projects/staggered_did/output/seven_estimators_example.png written in PNG format)
+
+. 
+. 
+. 
+. 
+. *use "https://github.com/jonathandroth/staggered_stata/raw/master/pj_officer_level_balanced.dta"
+. *staggered, y("complaints") g("first_trained") t("period") i("uid") estimand("simple")
+. *staggered_cs, y("complaints") g("first_trained") t("period") i("uid") estimand("eventstudy") eventTimeStart(-2) eventTimeEnd(2)
+. *staggered_sa, y("complaints") g("first_trained") t("period") i("uid") estimand("cohort")
+. 
+. // xtevent
+. 
+. *bys i: gen z_lead1 = f1.D
+. *xtevent Y  , policyvar(D) w(4) panelvar(i) timevar(t)  proxy(z_lead1) proxyiv(1 2)
+. 
+. * xteventtest
+. 
+end of do-file
+. }
+
+. 
+. 
+. * End log
+. di "End date and time: $S_DATE $S_TIME"
+End date and time: 18 Jul 2021 16:04:42
+
+. log close
+      name:  <unnamed>
+       log:  /Users/Pietro/Dropbox/Projects/staggered_did/scripts/logs/2021.07.18-16.02.59.log.txt
+  log type:  text
+ closed on:  18 Jul 2021, 16:04:42
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
