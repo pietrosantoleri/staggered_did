@@ -2,6 +2,7 @@
 * Project title: staggered_did
 * Created by: Pietro Santoleri (p.santoleri@santannapisa.it)
 * Created on: 19/07/2021
+* Last modified on: 06/08/2021
 * This is a modified version of a code written by Borusyak and Burgherr 
 *=============================================================================*
 
@@ -86,6 +87,7 @@ matrix drop _all
 if $run_did == 1 {
 	do $script_path/1.staggered_did_analysis.do
 }
+
 
 
 

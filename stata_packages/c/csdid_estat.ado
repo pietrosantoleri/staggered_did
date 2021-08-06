@@ -5,6 +5,7 @@
 ** Estat command for aggregators
 program csdid_estat, sortpreserve  
 version 14
+		syntax anything, [plot *]
         if "`e(cmd)'" != "csdid" {
                 error 301
         }
@@ -15,6 +16,7 @@ version 14
 		}
 		if inlist("`key'","attgt","simple","pretrend","group","calendar","event","all") {
 			csdid_`key'  `rest'
+			
 		}
 		else {
 		    display in red "Option `key' not recognized"
@@ -44,7 +46,7 @@ program clrreturn, rclass
 end
 
 program csdid_attgt,  rclass sortpreserve
-	syntax, [estore(name) esave(name) replace]
+	syntax, [estore(name) esave(name) replace plot * ]
  	display "ATT GT with WBOOT SE (alternative method)"
 	tempname lastreg
 	tempvar b V table
@@ -58,6 +60,7 @@ program csdid_attgt,  rclass sortpreserve
 	adde post `b' `V'
 	adde local cmd 	   estat
 	adde local cmdline estat attgt
+	adde local agg     attgt
 	if "`estore'"!="" est store `estore'
 	if "`esave'" !="" est save  `esave', `replace'
 	_coef_table
@@ -66,10 +69,13 @@ program csdid_attgt,  rclass sortpreserve
 	return matrix table = rtb
 	return matrix b = r_b_
 	return matrix V = r_V_
+	return local agg  attgt
+ 
 end
 	
+ 
 program csdid_simple,  rclass sortpreserve
-	syntax, [estore(name) esave(name) replace]
+	syntax, [estore(name) esave(name) replace ]
  	display "Average Treatment Effect on Treated"
 	mata:csdid_simple("e(b_attgt)","e(V_attgt)","`e(glev)'","`e(tlev)'")
 	tempname lastreg
@@ -84,6 +90,7 @@ program csdid_simple,  rclass sortpreserve
 	adde post `b' `V'
 	adde local cmd 	   estat
 	adde local cmdline estat simple
+	adde local agg     simple
 	if "`estore'"!="" est store `estore'
 	if "`esave'" !="" est save  `esave', `replace'
 	_coef_table
@@ -92,10 +99,11 @@ program csdid_simple,  rclass sortpreserve
 	return matrix table = rtb
 	return matrix b = r_b_
 	return matrix V = r_V_
+	return local agg  simple
 end
 
 program csdid_group, sortpreserve rclass
-	syntax, [estore(name) esave(name) replace]
+	syntax, [estore(name) esave(name) replace plot *]
   	display "ATT by group"
 	mata:csdid_group("e(b_attgt)","e(V_attgt)","`e(glev)'","`e(tlev)'")
 	tempname lastreg
@@ -108,6 +116,7 @@ program csdid_group, sortpreserve rclass
 	adde post `b' `V'
 	adde local cmd 	   estat
 	adde local cmdline estat group
+	adde local agg     group
 	if "`estore'"!="" est store `estore'
 	if "`esave'" !="" est save  `esave', `replace'
 	_coef_table
@@ -116,10 +125,12 @@ program csdid_group, sortpreserve rclass
 	return matrix table = rtb
 	return matrix b = r_b_
 	return matrix V = r_V_
+	return local agg  group
+ 
 end
 
 program csdid_calendar, sortpreserve rclass
-	syntax, [estore(name) esave(name) replace]
+	syntax, [estore(name) esave(name) replace plot * ]
   	display "ATT by Calendar Period"
 	mata:csdid_calendar("e(b_attgt)","e(V_attgt)","`e(glev)'","`e(tlev)'")
 	tempname lastreg
@@ -132,6 +143,7 @@ program csdid_calendar, sortpreserve rclass
 	adde post `b' `V'
 	adde local cmd 	   estat
 	adde local cmdline estat calendar
+	adde local agg     calendar
 	if "`estore'"!="" est store `estore'
 	if "`esave'" !="" est save  `esave', `replace'
 	_coef_table
@@ -140,11 +152,14 @@ program csdid_calendar, sortpreserve rclass
 	return matrix table = rtb
 	return matrix b = r_b_
 	return matrix V = r_V_
-	
+	return local agg  calendar
+ 
 end
  
 program csdid_event, sortpreserve rclass
-	syntax, [estore(name) esave(name) replace window(str) ]
+	syntax, [estore(name) esave(name) replace window(str) balance(int 0) ///
+			 plot * ]
+			 
    	display "ATT by Periods Before and After treatment"
 	display "Event Study:Dynamic effects"
 	if "`window'"!="" {
@@ -152,7 +167,7 @@ program csdid_event, sortpreserve rclass
 		local window `r(numlist)'
 	}
  
-	mata:csdid_event("e(b_attgt)","e(V_attgt)","`e(glev)'","`e(tlev)'","`window'")
+	mata:csdid_event("e(b_attgt)","e(V_attgt)","`e(glev)'","`e(tlev)'","`window'", `balance')
 	tempname lastreg
 	tempvar b V table
 	matrix `b' = r_b_
@@ -163,6 +178,7 @@ program csdid_event, sortpreserve rclass
 	adde post `b' `V'
 	adde local cmd 	   estat
 	adde local cmdline estat event
+	adde local agg     event
 	if "`estore'"!="" est store `estore'
 	if "`esave'" !="" est save  `esave', `replace'
 	_coef_table
@@ -171,6 +187,9 @@ program csdid_event, sortpreserve rclass
 	return matrix table = rtb
 	return matrix b = r_b_
 	return matrix V = r_V_
+	return local agg event
+	return local cmd estat
+ 
 end 
 
 
@@ -180,6 +199,10 @@ end
 
 program addr, rclass
         return `0'
+end
+
+program adds, sclass
+        sreturn `0'
 end
 
 mata
@@ -374,13 +397,29 @@ vector event_list(real matrix glvl, tlvl,window){
 		return(toreturn2)
 	}
  }
-  
- void csdid_event(string scalar  bb_, vv_, gl_, tl_, wnw){
-    real matrix b, v , ii, jj, glvl, tlvl, wndw
+
+vector ptreat(real matrix glvl, tlvl, b){
+	real scalar i, j, k, aux
+	aux = J(1,cols(glvl),0)
+	k=0 
+	for(i=1;i<=cols(glvl);i++){
+		for(j=1;j<=cols(tlvl);j++){
+			k++
+			if ((b[k]!=0) & (tlvl[j]>=glvl[i])) aux[i]=aux[i]+1
+		}	
+	}
+	return(aux)
+}
+ 
+ void csdid_event(string scalar  bb_, vv_, gl_, tl_, wnw, real scalar bal ){
+    real matrix b, v , ii, jj, glvl, tlvl, wndw, trtp
 	glvl = strtoreal(tokens(gl_));tlvl = strtoreal(tokens(tl_))	
 	b=st_matrix(bb_);v=st_matrix(vv_)
 	wndw=strtoreal(tokens(wnw))
 	 
+	// Find Balance
+	trtp=ptreat(glvl,tlvl, b )
+	
 	real matrix evnt_lst
 	evnt_lst=event_list(glvl,tlvl,wndw)
  	real scalar k, i, j, h, flag
@@ -405,13 +444,13 @@ vector event_list(real matrix glvl, tlvl,window){
 		for(i=1;i<=cols(glvl);i++) {
 			for(j=1;j<=cols(tlvl);j++) {
 				k++
-				if ( ( (glvl[i]+evnt_lst[h])==tlvl[j] ) & (b[k]!=0) ) {	
+				if ( ( (glvl[i]+evnt_lst[h])==tlvl[j] ) & (b[k]!=0)) {	
 					//ag_rif=ag_rif, rifgt[.,k]
 					//ag_wt =ag_wt , rifwt[.,i]
 					ii[k] = 1						
 					if (flag==0) {
 						if (evnt_lst[h]< 0) coleqnm=coleqnm+sprintf(" T%s" ,strofreal(evnt_lst[h]))
-						if (evnt_lst[h]==0) coleqnm=coleqnm+" T"
+						if (evnt_lst[h]==0) coleqnm=coleqnm+" T+0"
 						if (evnt_lst[h]> 0) coleqnm=coleqnm+sprintf(" T+%s",strofreal(evnt_lst[h]))
 					}
 					flag=1

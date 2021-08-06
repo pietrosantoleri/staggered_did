@@ -1,4 +1,4 @@
-* 00000013
+* 00000015
 *! version 1.0.0
 * Do not erase or edit this file
 * It is used by Stata to track the ado and help
@@ -486,4 +486,61 @@ f style/color-plr2.style
 f style/color-ply1.style
 f style/color-ply2.style
 f style/color-ply3.style
+e
+S https://raw.githubusercontent.com/friosavila/csdid_drdid/main/code
+N csdid.pkg
+D  6 Aug 2021
+U 14
+d 'CSDID': Module for the estimation of Difference-in-Difference models with Multiple time periods.
+d 
+d Authors: Fernando Rios-Avila, Pedro  H.C. Sant'Anna and Brantly Callaway
+d Support: Fernando Rios-Avila at friosa@gmail.com
+d 
+d 'CSDID' is a command that implements Callaway and Sant'Anna (2020) estimator for DID models with
+d  multiple time periods.
+d  The main idea of CSDID is that consistent estimations for ATT's can be obtained by ignoring 2x2
+d  DID design that compare late treated units with earlier treated units. In the presence of
+d  heterogeneous and dynamic effects, this type of comparison can severely bias the estimation
+d  of Treatment effects.
+d d  CSDID at its core uses DRDID for the estimation of all 2x2 DID designs to estimate all relevant
+d  ATTGT's (Average treatment effects of the treated for group G at time T). Post estimation
+d  commands can be used to obtain important aggregations.
+d d  CSDID can be used with panel data and repeated cross-section.
+d  This package installs both CSDID and DRDID 
+d 
+d    KW: Differences in Differences
+d    KW: DID
+d    KW: Event Studies
+d    KW: csdid
+d    KW: drdid
+d 
+d Requires: Stata version 14
+d 
+d Required packages: drdid
+d 
+d Distribution-Date: 20210801
+d 
+f c/csdid.ado
+f c/csdid.sthlp
+f c/csdid_postestimation.sthlp
+f c/csdid_estat.ado
+f c/csdid_stats.ado
+f c/csdid_table.ado
+f c/csdid_plot.ado
+f d/drdid.ado
+f _/_gmm_dripw.ado
+f _/_gmm_regipw.ado
+f _/_het_did_gmm.ado
+f d/drdid.sthlp
+e
+S https://raw.githubusercontent.com/lsun20/eventstudyinteract/master
+N eventstudyinteract.pkg
+D  6 Aug 2021
+U 15
+d 'EVENTSTUDYINTERACT': interaction weighted estimator
+d Distribution-Date:   20210331
+d License: MIT
+d 
+f e/eventstudyinteract.ado
+f e/eventstudyinteract.sthlp
 e
